@@ -1,4 +1,4 @@
-import WebSocket, { WebSocketServer } from "ws";
+import { WebSocketServer } from "ws";
 
 const wss = new WebSocketServer({ port: process.env.PORT || 8080 });
 
@@ -17,8 +17,21 @@ wss.on("connection", function connection(ws) {
           room: payload.channel,
         })
       );
+      channels[payload.channel].forEach((client) => {
+        client.send(
+          JSON.stringify({
+            type: "message",
+            room: payload.channel,
+            message: {
+              type: "join",
+              author: payload.name,
+              channel: payload.channel,
+            },
+          })
+        );
+      });
     } else if (payload.type === "message") {
-      channels[payload.channel].forEach(function (client) {
+      channels[payload.channel].forEach((client) => {
         client.send(
           JSON.stringify({
             type: "message",
